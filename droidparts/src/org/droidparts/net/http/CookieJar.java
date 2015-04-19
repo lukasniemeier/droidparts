@@ -103,12 +103,14 @@ public class CookieJar extends CookieHandler implements CookieStore {
 	@Override
 	public void addCookie(Cookie cookie) {
 		L.d("Got a cookie: %s.", cookie);
+		ArrayList<String> toBeRemoved = new ArrayList<String>();
 		for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
 			Cookie c = it.next();
 			if (isEqual(cookie, c)) {
-				it.remove();
+				toBeRemoved.add(c);
 			}
 		}
+		cookies.removeAll(toBeRemoved);
 		if (!cookie.isExpired(new Date())) {
 			cookies.add(cookie);
 		}
@@ -128,13 +130,15 @@ public class CookieJar extends CookieHandler implements CookieStore {
 	@Override
 	public boolean clearExpired(Date date) {
 		boolean purged = false;
+		ArrayList<String> toBeRemoved = new ArrayList<String>();
 		for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
 			Cookie cookie = it.next();
 			if (cookie.isExpired(date)) {
-				it.remove();
+				toBeRemoved.add(cookie);
 				purged = true;
 			}
 		}
+		cookies.removeAll(toBeRemoved);
 		if (persistCookies && purged) {
 			persistCookies();
 		}
@@ -143,8 +147,9 @@ public class CookieJar extends CookieHandler implements CookieStore {
 
 	@Override
 	public List<Cookie> getCookies() {
-		L.d("Cookie count: %d.", cookies.size());
-		return unmodifiableList(cookies);
+		List<Cookie> tempCookies = unmodifiableList(cookies);
+		L.d("Cookie count: %d.", tempCookies.size());
+		return tempCookies;
 	}
 
 	// Custom
@@ -192,8 +197,9 @@ public class CookieJar extends CookieHandler implements CookieStore {
 	private void persistCookies() {
 		Editor editor = prefs.edit();
 		editor.clear();
-		for (int i = 0; i < cookies.size(); i++) {
-			editor.putString(String.valueOf(i), toString(cookies.get(i)));
+		for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
+			Cookie cookie = it.next();
+			editor.putString(String.valueOf(i), toString(cookie));
 		}
 		editor.commit();
 	}
