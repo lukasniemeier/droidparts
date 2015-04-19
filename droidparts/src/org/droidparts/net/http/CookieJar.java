@@ -103,7 +103,7 @@ public class CookieJar extends CookieHandler implements CookieStore {
 	@Override
 	public void addCookie(Cookie cookie) {
 		L.d("Got a cookie: %s.", cookie);
-		ArrayList<String> toBeRemoved = new ArrayList<String>();
+		ArrayList<Cookie> toBeRemoved = new ArrayList<Cookie>();
 		for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
 			Cookie c = it.next();
 			if (isEqual(cookie, c)) {
@@ -130,7 +130,7 @@ public class CookieJar extends CookieHandler implements CookieStore {
 	@Override
 	public boolean clearExpired(Date date) {
 		boolean purged = false;
-		ArrayList<String> toBeRemoved = new ArrayList<String>();
+		ArrayList<Cookie> toBeRemoved = new ArrayList<Cookie>();
 		for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
 			Cookie cookie = it.next();
 			if (cookie.isExpired(date)) {
@@ -176,7 +176,7 @@ public class CookieJar extends CookieHandler implements CookieStore {
 	private Collection<Cookie> getCookies(URI uri) {
 		HashMap<String, Cookie> map = new HashMap<String, Cookie>();
 		for (Cookie cookie : getCookies()) {
-			boolean suitable = uri.getHost().equals(cookie.getDomain())
+			boolean suitable = uri.getHost().endsWith(cookie.getDomain())
 					&& uri.getPath().startsWith(cookie.getPath());
 			if (suitable) {
 				boolean put = true;
@@ -197,9 +197,10 @@ public class CookieJar extends CookieHandler implements CookieStore {
 	private void persistCookies() {
 		Editor editor = prefs.edit();
 		editor.clear();
+		int i = 0;
 		for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
 			Cookie cookie = it.next();
-			editor.putString(String.valueOf(i), toString(cookie));
+			editor.putString(String.valueOf(i++), toString(cookie));
 		}
 		editor.commit();
 	}
